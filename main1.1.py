@@ -195,9 +195,12 @@ if __name__ == '__main__':
             min_prince = every_info['min_prince']
         else:
             if every_info['min_prince'] < min_prince:
+                min_prince = every_info['min_prince']
                 print('有新的低价')
         info_gather.append(every_info)
         df = pandas.DataFrame(info_gather)
         df.to_excel('大力仙器龙族仙器走势图.xlsx')
         time.sleep(600)
+
+
 

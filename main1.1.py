@@ -12,7 +12,7 @@ import pandas
 import time, datetime
 from urllib import parse
 import os
-
+from twilio.rest import Client
 
 url = "https://xy2.cbg.163.com/cgi-bin/show_login.py?act=show_login&server_id=72&server_name=%E5%89%91%E8%83%86%E7%90%B4%E5%BF%83&area_name=%E4%BA%BA%E7%95%8C%20&area_id=4"
 #4仙忽视混
@@ -184,7 +184,7 @@ def get_more_info():
 
 
 
-    return_info = {
+    return_info = [{
         'sale_num': sale_num,
         'average_price': average_price,
         'min_prince': min(price_arr),
@@ -192,40 +192,56 @@ def get_more_info():
         'time': excel_Time,
         'eid':low_price_eid,
         'url':low_price_url
-    }
 
+    },df]
 
-    df.pop('other_info')
-    df.pop('areaid')
-    df.pop('can_cross_buy')
-    df.pop('equip_type_desc')
-    df.pop('min_buy_level')
-    df.pop('min_buyer_level')
-    df.pop('serverid')
-    df.pop('zhui_jia_attr')
-    df.pop('equip_type')
-    df.pop('equip_level')
-    df.pop('game_ordersn')
-    df.pop('kindid')
-    df.pop('lianhua_attr')
-    df.pop('suit_require')
-    df.pop('equip_face_img')
-    df.to_excel('大力仙器' + otherStyleTime + '.xlsx')
+    # df.pop('other_info')
+    # df.pop('areaid')
+    # df.pop('can_cross_buy')
+    # df.pop('equip_type_desc')
+    # df.pop('min_buy_level')
+    # df.pop('min_buyer_level')
+    # df.pop('serverid')
+    # df.pop('zhui_jia_attr')
+    # df.pop('equip_type')
+    # df.pop('equip_level')
+    # df.pop('game_ordersn')
+    # df.pop('kindid')
+    # df.pop('lianhua_attr')
+    # df.pop('suit_require')
+    # df.pop('equip_face_img')
+    # df.to_excel('大力仙器' + otherStyleTime + '.xlsx')
 
     return return_info
 
 if __name__ == '__main__':
     info_gather = []
     min_prince = 0
+    list_num = 0
+    average_price = 0
 
     while True:
-        every_info = get_more_info()
+        info = get_more_info()
+        every_info =info[0]
+
         if min_prince == 0:
             min_prince = every_info['min_prince']
         else:
             if every_info['min_prince'] < min_prince:
                 min_prince = every_info['min_prince']
                 print('有新的低价')
+
+                account_sid = 'ACa4c01dddc037244a6bbdc4c629a2923d'
+                auth_token = 'b44fff6661d2e633ae536d4f60e17b55'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages.create(
+                    body =str(every_info),
+                    from_='+13343452980',
+                    to='+8613145155669'
+                )
+
+                print(message.sid)
         info_gather.append(every_info)
         df = pandas.DataFrame(info_gather)
         if os.path.isfile('大力仙器龙族仙器走势图.xlsx'):
@@ -233,8 +249,39 @@ if __name__ == '__main__':
             res = df1.append(df)
         else:
             res = df
-        res.to_excel('大力仙器龙族仙器走势图.xlsx')
-        time.sleep(600)
+
+        if list_num == 0 or not list_num == info[0]['sale_num'] or not average_price  == info[0][
+            'average_price']:
+            result_df = info[1]
+            result_df.pop('other_info')
+            result_df.pop('areaid')
+            result_df.pop('can_cross_buy')
+            result_df.pop('equip_type_desc')
+            result_df.pop('min_buy_level')
+            result_df.pop('min_buyer_level')
+            result_df.pop('serverid')
+            result_df.pop('zhui_jia_attr')
+            result_df.pop('equip_type')
+            result_df.pop('equip_level')
+            result_df.pop('game_ordersn')
+            result_df.pop('kindid')
+            result_df.pop('lianhua_attr')
+            result_df.pop('suit_require')
+            result_df.pop('equip_face_img')
+
+            now = datetime.datetime.now()
+            otherStyleTime = now.strftime("%Y_%m_%d_%H_%M")
+
+            path = os.getcwd()
+            # writer1 =pandas.ExcelFile(path +'大力仙器' + otherStyleTime + '.xlsx' )
+            # writer2 =pandas.ExcelFile(path +'大力仙器龙族仙器走势图.xlsx' )
+
+            result_df.to_excel('大力仙器' + otherStyleTime + '.xlsx')
+            average_price = info[0]['average_price']
+            list_num = info[0]['sale_num']
+            res.to_excel('大力仙器龙族仙器走势图.xlsx' ,index=False)
+
+        time.sleep(60)
 
 
 

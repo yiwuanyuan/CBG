@@ -11,6 +11,7 @@ import random
 import pandas
 import time, datetime
 from urllib import parse
+import os
 
 
 url = "https://xy2.cbg.163.com/cgi-bin/show_login.py?act=show_login&server_id=72&server_name=%E5%89%91%E8%83%86%E7%90%B4%E5%BF%83&area_name=%E4%BA%BA%E7%95%8C%20&area_id=4"
@@ -150,23 +151,50 @@ def get_more_info():
         price_arr.append(i['price'] / 100)
         total_price = total_price + i['price'] / 100
     average_price = (total_price - max(price_arr)) / (sale_num - 1)
+    df = pandas.DataFrame(total_msg)
 
+
+    low_price_eid = str(df[df['price']==df['price'].min()]['eid']).split()[1]
+    low_price_sid = str(df[df['price']==df['price'].min()]['serverid']).split()[1]
+
+
+    if not len(df[df['server_name']=='傲雪凌霜']['price']) == 0:
+        #
+        server_price = df[df['server_name']=='傲雪凌霜']['price']
+        server_price_min = df[df['server_name']=='傲雪凌霜']['price'].min()
+        #选定服务器最低价
+        selected_server_min = int(server_price_min)/100
+
+    low_price_url = 'https://xy2.cbg.163.com/equip?s='+ low_price_sid+'&eid='+low_price_eid +'&o&view_loc=overall_search'
 
 
     print('在售的数量为:' + str(sale_num))
-    print('在售的平均价格(去掉一个最高价)为:' + str(average_price))
+    print('在售的平均价格(去掉一个最高价)为:' + str(int(average_price)))
     print('在售的最低价格为:' + str(min(price_arr)))
+    print('在售的最低价格的链接为:' + low_price_url)
+    print('傲雪凌霜在售的最低价格:' + str(selected_server_min))
+    if not low_price_url == str(selected_server_min):
+        print('加上10%跨服费后:', float(min(price_arr)*1.1))
 
     now = datetime.datetime.now()
     otherStyleTime = now.strftime("%Y_%m_%d_%H_%M")
+    excel_Time = now.strftime("%H:%M:%S")
+    excel_Date = now.strftime("%Y/%m/%d")
+
+
+
 
     return_info = {
         'sale_num': sale_num,
         'average_price': average_price,
-        'min_prince' : min(price_arr),
-        'time': otherStyleTime
+        'min_prince': min(price_arr),
+        'Date': excel_Date,
+        'time': excel_Time,
+        'eid':low_price_eid,
+        'url':low_price_url
     }
-    df = pandas.DataFrame(total_msg)
+
+
     df.pop('other_info')
     df.pop('areaid')
     df.pop('can_cross_buy')
@@ -189,6 +217,7 @@ def get_more_info():
 if __name__ == '__main__':
     info_gather = []
     min_prince = 0
+
     while True:
         every_info = get_more_info()
         if min_prince == 0:
@@ -199,7 +228,12 @@ if __name__ == '__main__':
                 print('有新的低价')
         info_gather.append(every_info)
         df = pandas.DataFrame(info_gather)
-        df.to_excel('大力仙器龙族仙器走势图.xlsx')
+        if os.path.isfile('大力仙器龙族仙器走势图.xlsx'):
+            df1 = pandas.read_excel('大力仙器龙族仙器走势图.xlsx')
+            res = df1.append(df)
+        else:
+            res = df
+        res.to_excel('大力仙器龙族仙器走势图.xlsx')
         time.sleep(600)
 
 

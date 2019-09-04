@@ -81,6 +81,46 @@ user_agent_list = [
     "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24"
 ]
 
+import smtplib
+from email.header import Header
+from email.mime.text import MIMEText
+
+# 第三方 SMTP 服务
+mail_host = "smtp.163.com"  # SMTP服务器
+mail_user = "wangyuan_dhtwo@163.com"  # 用户名
+mail_pass = "wang31415926"  # 授权密码，非登录密码
+
+sender = 'wangyuan_dhtwo@163.com'  # 发件人邮箱(最好写全, 不然会失败)
+receivers = ['wangyuan_mail@qq.com']  # 接收邮件，可设置为你的QQ邮箱或者其他邮箱
+
+
+
+def sendEmail(title,content):
+    message = MIMEText(content, 'plain', 'utf-8')  # 内容, 格式, 编码
+    message['From'] = "{}".format(sender)
+    message['To'] = ",".join(receivers)
+    message['Subject'] = title
+
+    try:
+        smtpObj = smtplib.SMTP_SSL(mail_host, 465)  # 启用SSL发信, 端口一般是465
+        smtpObj.login(mail_user, mail_pass)  # 登录验证
+        smtpObj.sendmail(sender, receivers, message.as_string())  # 发送
+        print("mail has been send successfully.")
+    except smtplib.SMTPException as e:
+        print(e)
+
+def send_email2(SMTP_host, from_account, from_passwd, to_account, subject, content):
+    email_client = smtplib.SMTP(SMTP_host)
+    email_client.login(from_account, from_passwd)
+    # create msg
+    msg = MIMEText(content, 'plain', 'utf-8')
+    msg['Subject'] = Header(subject, 'utf-8')  # subject
+    msg['From'] = from_account
+    msg['To'] = to_account
+    email_client.sendmail(from_account, to_account, msg.as_string())
+
+    email_client.quit()
+
 
 def url_timestamp():
     int2week = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
@@ -96,6 +136,18 @@ def url_timestamp():
 
     url_timestamp =parse.quote(timestamp) + '%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)'
     return url_timestamp
+
+
+def send_SMS(msg):
+    account_sid = 'ACa4c01dddc037244a6bbdc4c629a2923d'
+    auth_token = 'b44fff6661d2e633ae536d4f60e17b55'
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body=str(msg),
+        from_='+13343452980',
+        to='+8613145155669'
+    )
+    print('成功发送短信')
 
 class getContent:
     def __init__(self,url):
@@ -214,7 +266,7 @@ def get_more_info():
 
     return return_info
 
-if __name__ == '__main__':
+def always_search():
     info_gather = []
     min_prince = 0
     list_num = 0
@@ -222,35 +274,25 @@ if __name__ == '__main__':
 
     while True:
         info = get_more_info()
-        every_info =info[0]
-
+        every_info = info[0]
         if min_prince == 0:
             min_prince = every_info['min_prince']
         else:
+            print(every_info['min_prince'], min_prince, every_info['min_prince'] < min_prince)
             if every_info['min_prince'] < min_prince:
                 min_prince = every_info['min_prince']
-                print('有新的低价')
+                now_send = datetime.datetime.now()
+                Mail_title ='新的低价' + now_send.strftime("%Y_%m_%d_%H_%M")
+                sendEmail(Mail_title,every_info)
 
-                account_sid = 'ACa4c01dddc037244a6bbdc4c629a2923d'
-                auth_token = 'b44fff6661d2e633ae536d4f60e17b55'
-                client = Client(account_sid, auth_token)
-
-                message = client.messages.create(
-                    body =str(every_info),
-                    from_='+13343452980',
-                    to='+8613145155669'
-                )
-
-                print(message.sid)
-        info_gather.append(every_info)
-        df = pandas.DataFrame(info_gather)
+        df = pandas.DataFrame(every_info,index=[0])
         if os.path.isfile('大力仙器龙族仙器走势图.xlsx'):
             df1 = pandas.read_excel('大力仙器龙族仙器走势图.xlsx')
             res = df1.append(df)
         else:
             res = df
 
-        if list_num == 0 or not list_num == info[0]['sale_num'] or not average_price  == info[0][
+        if list_num == 0 or not list_num == info[0]['sale_num'] or not average_price == info[0][
             'average_price']:
             result_df = info[1]
             result_df.pop('other_info')
@@ -279,9 +321,13 @@ if __name__ == '__main__':
             result_df.to_excel('大力仙器' + otherStyleTime + '.xlsx')
             average_price = info[0]['average_price']
             list_num = info[0]['sale_num']
-            res.to_excel('大力仙器龙族仙器走势图.xlsx' ,index=False)
+            res.to_excel('大力仙器龙族仙器走势图.xlsx' )
 
         time.sleep(60)
+
+if __name__ == '__main__':
+    always_search()
+    # send_SMS('在售的最低价格的链接为:https://xy2.cbg.163.com/equip?s=331&eid=201909041100213-331-JNXZUH1F4D9J&o&view_loc=overall_search')
 
 
 

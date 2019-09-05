@@ -41,13 +41,6 @@ def send_email2(SMTP_host, from_account, from_passwd, to_account, subject, conte
     email_client.quit()
 
 if __name__ == '__main__':
-    message = '''在售的数量为:90
-在售的平均价格(去掉一个最高价)为:5022
-在售的最低价格为:3850.0
-在售的最低价格的链接为:https://xy2.cbg.163.com/equip?s=331&eid=201909041100213-331-JNXZUH1F4D9J&o&view_loc=overall_search
-傲雪凌霜在售的最低价格:4499.0
-加上10%跨服费后: 4235.0
-3850.0 3850.0 False'''
-    sendEmail('test1',message)
-        # receiver = '***'
-        # send_email2(mail_host, mail_user, mail_pass, receiver, title, content)
+    # message = ' '
+    # sendEmail('tws',message)
+    pass

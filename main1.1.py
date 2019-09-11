@@ -264,7 +264,7 @@ def always_search():
                 min_prince = every_info['min_prince']
                 now_send = datetime.datetime.now()
                 Mail_title = '新的低价' + now_send.strftime("%Y_%m_%d_%H_%M")
-                sendEmail(Mail_title, str(every_info))
+                sendEmail(Mail_title, '有新的低价' + str(every_info['min_prince']) + '\n' +str(every_info['url']))
 
         df = pandas.DataFrame(every_info, index=[0])
         if os.path.isfile('大力仙器龙族仙器走势图.xlsx'):

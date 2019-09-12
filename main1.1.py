@@ -13,6 +13,7 @@ import time, datetime
 from urllib import parse
 import os
 from twilio.rest import Client
+from sqlalchemy import create_engine
 
 url = "https://xy2.cbg.163.com/cgi-bin/show_login.py?act=show_login&server_id=72&server_name=%E5%89%91%E8%83%86%E7%90%B4%E5%BF%83&area_name=%E4%BA%BA%E7%95%8C%20&area_id=4"
 # 4仙忽视混
@@ -252,6 +253,7 @@ def always_search():
     min_prince = 0
     list_num = 0
     average_price = 0
+    engine = create_engine('mysql+pymysql://root:wangyuan199424@localhost:3306/dalixianqidb')
 
     while True:
         info = get_more_info()
@@ -298,6 +300,7 @@ def always_search():
             result_df.to_excel('大力仙器' + otherStyleTime + '.xlsx')
             average_price = info[0]['average_price']
             list_num = info[0]['sale_num']
+            # res.to_sql('dalixianqidb',engine, index=False)
             res.to_excel('大力仙器龙族仙器走势图.xlsx')
 
         time.sleep(60)

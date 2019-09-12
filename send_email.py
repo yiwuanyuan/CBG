@@ -2,6 +2,7 @@ import smtplib
 from email.header import Header
 from email.mime.text import MIMEText
 
+
 # 第三方 SMTP 服务
 mail_host = "smtp.163.com"  # SMTP服务器
 mail_user = "wangyuan_dhtwo@163.com"  # 用户名
